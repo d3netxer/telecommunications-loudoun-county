@@ -10,7 +10,9 @@
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
     <link rel="stylesheet" href="http://jqueryui.com/resources/demos/style.css">
-    <link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css">
+
+
+    <!--<link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css">-->
 
     <style>
       html, body {
@@ -37,27 +39,32 @@
         margin-right: 10px;
         font-family: "Proxima Nova W01", "Helvetica Neue", Helvetica, Arial, sans-serif;
         background: transparent;
+        font-size: 17px;
       }
       p {
         font-size: 17px;
         margin-bottom: 10px;
       }
+      .info {
+          padding: 6px 8px;
+          font: 14px/16px Arial, Helvetica, sans-serif;
+          background: white;
+          background: rgba(255,255,255,0.8);
+          box-shadow: 0 0 15px rgba(0,0,0,0.2);
+          border-radius: 5px;
+        }
+      .info h4 {
+          margin: 0 0 5px;
+          color: #d73f3f;
+        }
     </style>
 
     <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
     <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
-    <script type="text/javascript" src="http://fast.fonts.net/jsapi/b6470a43-5105-49d3-95ae-75217a436bf8.js"></script>
 
   </head>
   <body>
 
-<!--
-    <p>Layer controls</p>
-<div id="buttons">
-  <button id="sublayer0" class="Btn Btn--l Btn--blue"><span>Toggle Countries</span></button>
-  <button id="sublayer1" class="Btn Btn--l Btn--blue"><span>Toggle Lakes</span></button>
-</div>
--->
 
     <div id="map"></div>
 
@@ -76,7 +83,7 @@
         
     window.onload = function() {
 
-    var vizjson = 'https://masonacademy.cartodb.com/api/v2/viz/074f7d10-b2e1-11e5-bb7d-0ea31932ec1d/viz.json';
+    //var vizjson = 'https://masonacademy.cartodb.com/api/v2/viz/074f7d10-b2e1-11e5-bb7d-0ea31932ec1d/viz.json';
 
 
     // Choose center and zoom level
@@ -89,25 +96,64 @@
     var map_object = new L.Map('map', options);
 
 
+// Put layer data into a JS object
+    var layerSource = {
+            user_name: 'masonacademy',
+            type: 'cartodb',
+            sublayers: [{
+                sql: "SELECT * FROM loudoun_county_towers_20160103", // African countries
+                cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #3E7BB6;marker-allow-overlap: true;}'
+            },
+            {
+                sql: "SELECT * FROM measurements_total", // Natural and artificial lakes
+                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #FF6600;marker-allow-overlap: true;}'
+            }]
+    }
+
+    // For storing the sublayers
+    var sublayers = [];
+
     // Add a basemap to the map object just created
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map_object);
 
 
+
     // Add CartoDB data layers
-    cartodb.createLayer(map_object,vizjson)
+    cartodb.createLayer(map_object,layerSource)
         .addTo(map_object)
         .done(function(layer) {
-    for (var i = 0; i < layer.getSubLayerCount(); i++) {
+        for (var i = 0; i < layer.getSubLayerCount(); i++) {
                sublayers[i] = layer.getSubLayer(i);
-               alert("Congrats, you added sublayer #" + i + "!");
-           } 
+               //alert("Congrats, you added sublayer #" + i + "!");
+               //sublayers[i].infowindow.set('template', $('#infowindow_template').html());
+           }
+           cdb.vis.Vis.addInfowindow(map, layer.getSubLayer(0), ['cartodb_id']) 
   })
   .error(function(err) {
     // report error
     console.log("An error occurred: " + err);
   });
+
+
+    //taken from: http://leafletjs.com/examples/choropleth-example.html
+    //info box that contains title
+    var info = L.control();
+
+    info.onAdd = function (map) {
+      this._div = L.DomUtil.create('div', 'info');
+      this._div.innerHTML = '<div id="buttons"><button id="sublayer0" class="Btn Btn--l Btn--blue"><span>Cell Towers</span></button><button id="sublayer1" class="Btn Btn--l Btn--blue"><span>Measurements</span></button></div>';
+      return this._div;
+    };
+
+    info.addTo(map_object);
+
+
+<!--
+
+-->
+
 
   var sublayer0Shown = true;
     $("#sublayer0").on('click', function() {
@@ -129,8 +175,27 @@
         sublayer1Shown = !sublayer1Shown; 
     });
 
+
 }
 
     </script>
+
+    <script type="infowindow/html" id="infowindow_template">
+      <div class="cartodb-popup v2">
+        <a href="#close" class="cartodb-popup-close-button close">x</a>
+         <div class="cartodb-popup-content-wrapper">
+           <div class="cartodb-popup-header">
+             <img style="width: 100%" src="http://cartodb.com/assets/logos/logos_full_cartodb_light.png"></src>
+           </div>
+           <div class="cartodb-popup-content">
+             <!-- content.data contains the field info -->
+             <h4>City: </h4>
+             <p>{{content.data.name}}</p>
+           </div>
+         </div>
+         <div class="cartodb-popup-tip-container"></div>
+      </div>
+    </script>
+
   </body>
 </html>
