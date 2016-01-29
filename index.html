@@ -68,6 +68,50 @@
 
     <div id="map"></div>
 
+    <script type="infowindow/html" id="infowindow_template_tower">
+      <div class="cartodb-popup v2">
+        <a href="#close" class="cartodb-popup-close-button close">x</a>
+         <div class="cartodb-popup-content-wrapper">
+           <div class="cartodb-popup-content">
+             <!-- content.data contains the field info -->
+             <h4>cell: </h4>
+             <p>{{content.data.cell}}</p>
+             <h4>lat: </h4>
+             <p>{{content.data.lat}}</p>
+             <h4>lon: </h4>
+             <p>{{content.data.lon}}</p>
+             <h4>averagesig: </h4>
+             <p>{{content.data.averagesig}}</p>
+             <h4>radio: </h4>
+             <p>{{content.data.radio}}</p>
+           </div>
+         </div>
+         <div class="cartodb-popup-tip-container"></div>
+      </div>
+    </script>
+
+    <script type="infowindow/html" id="infowindow_template_measurement">
+      <div class="cartodb-popup v2">
+        <a href="#close" class="cartodb-popup-close-button close">x</a>
+         <div class="cartodb-popup-content-wrapper">
+           <div class="cartodb-popup-content">
+             <!-- content.data contains the field info -->
+             <h4>measured: </h4>
+             <p>{{content.data.measured}}</p>
+             <h4>net: </h4>
+             <p>{{content.data.net}}</p>
+             <h4>radio: </h4>
+             <p>{{content.data.radio}}</p>
+             <h4>signal: </h4>
+             <p>{{content.data.signal}}</p>
+             <h4>cell: </h4>
+             <p>{{content.data.cell}}</p>
+           </div>
+         </div>
+         <div class="cartodb-popup-tip-container"></div>
+      </div>
+    </script>
+
     <!--
     <div id="dashboard">
         <h3 class="Title Title--xs">CartoDB.js from the ground up, Lesson 2</h3>
@@ -102,11 +146,13 @@
             type: 'cartodb',
             sublayers: [{
                 sql: "SELECT * FROM loudoun_county_towers_20160103", // African countries
-                cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #3E7BB6;marker-allow-overlap: true;}'
+                cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #3E7BB6;marker-allow-overlap: true;}',
+                interactivity: "cell,lat,lon,averagesig,radio",
             },
             {
                 sql: "SELECT * FROM measurements_total", // Natural and artificial lakes
-                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #FF6600;marker-allow-overlap: true;}'
+                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #FF6600;marker-allow-overlap: true;}',
+                interactivity: "measured,net,radio,signal,cell",
             }]
     }
 
@@ -124,18 +170,29 @@
     cartodb.createLayer(map_object,layerSource)
         .addTo(map_object)
         .done(function(layer) {
-        for (var i = 0; i < layer.getSubLayerCount(); i++) {
-               sublayers[i] = layer.getSubLayer(i);
-               //alert("Congrats, you added sublayer #" + i + "!");
-               //sublayers[i].infowindow.set('template', $('#infowindow_template').html());
-           }
-           cdb.vis.Vis.addInfowindow(map, layer.getSubLayer(0), ['cartodb_id']) 
+          for (var i = 0; i < layer.getSubLayerCount(); i++) {
+                 sublayers[i] = layer.getSubLayer(i);
+                 //alert("Congrats, you added sublayer #" + i + "!");
+             }
+             layer.getSubLayer(0).setInteraction(true);
+             cdb.vis.Vis.addInfowindow(map_object, layer.getSubLayer(0), ['cell,lat,lon,averagesig,radio'], {
+                   infowindowTemplate: $('#infowindow_template_tower').text(),
+                   templateType: 'mustache',
+                   triggerEvent: 'featureClick',
+                   cursorInteraction: true  
+             });
+             layer.getSubLayer(1).setInteraction(true);
+             cdb.vis.Vis.addInfowindow(map_object, layer.getSubLayer(1), ['measured,net,radio,signal,cell'], {
+                   infowindowTemplate: $('#infowindow_template_measurement').text(),
+                   templateType: 'mustache',
+                   triggerEvent: 'featureClick',
+                   cursorInteraction: true  
+             });
   })
   .error(function(err) {
     // report error
     console.log("An error occurred: " + err);
   });
-
 
     //taken from: http://leafletjs.com/examples/choropleth-example.html
     //info box that contains title
@@ -148,11 +205,6 @@
     };
 
     info.addTo(map_object);
-
-
-<!--
-
--->
 
 
   var sublayer0Shown = true;
@@ -175,27 +227,10 @@
         sublayer1Shown = !sublayer1Shown; 
     });
 
-
 }
 
     </script>
 
-    <script type="infowindow/html" id="infowindow_template">
-      <div class="cartodb-popup v2">
-        <a href="#close" class="cartodb-popup-close-button close">x</a>
-         <div class="cartodb-popup-content-wrapper">
-           <div class="cartodb-popup-header">
-             <img style="width: 100%" src="http://cartodb.com/assets/logos/logos_full_cartodb_light.png"></src>
-           </div>
-           <div class="cartodb-popup-content">
-             <!-- content.data contains the field info -->
-             <h4>City: </h4>
-             <p>{{content.data.name}}</p>
-           </div>
-         </div>
-         <div class="cartodb-popup-tip-container"></div>
-      </div>
-    </script>
 
   </body>
 </html>
