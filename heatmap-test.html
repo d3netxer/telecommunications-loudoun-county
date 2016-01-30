@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Northern Virginia CellIDs</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
+
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <link rel="stylesheet" href="http://jqueryui.com/resources/demos/style.css">
+
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <!--<link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css">-->
+
+    <style>
+      html, body {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #dashboard {
+        height: 33%;
+        padding: 25px;
+        margin: 0;
+        border-top: 2px solid #333;
+      }
+      #dash {
+        margin: 25px 0;
+        width: 400px;
+      }
+      button {
+        margin-right: 10px;
+        font-family: "Proxima Nova W01", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: transparent;
+        font-size: 17px;
+      }
+      p {
+        font-size: 17px;
+        margin-bottom: 10px;
+      }
+      .info {
+          padding: 6px 8px;
+          font: 14px/16px Arial, Helvetica, sans-serif;
+          background: white;
+          background: rgba(255,255,255,0.8);
+          box-shadow: 0 0 15px rgba(0,0,0,0.2);
+          border-radius: 5px;
+        }
+      .info h4 {
+          margin: 0 0 5px;
+          color: #d73f3f;
+        }
+    </style>
+
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+
+    
+
+  </head>
+
+<script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+  <script src="heatmap.js"></script>
+    <script src="leaflet-heatmap.js"></script>
+
+
+  <body>
+
+
+    <div id="map"></div>
+
+
+    <script src="leaflet-heatmap.js"></script>
+
+<script type="text/javascript">
+// don't forget to include leaflet-heatmap.js
+var testData = {
+  max: 8,
+  data: [{lat: 24.6408, lng:46.7728, count: 3},{lat: 50.75, lng:-1.55, count: 1},{lat: 30.75, lng:-70.55, count: 1},{lat: 30.75, lng:-77.55, count: 2},{lat: 38.2, lng:-78.9, count: 3}]
+};
+
+var baseLayer = L.tileLayer(
+  'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution: '...',
+    maxZoom: 18
+  }
+);
+
+var cfg = {
+  // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+  // if scaleRadius is false it will be the constant radius used in pixels
+  radius: 2,
+  maxOpacity: .8, 
+  // scales the radius based on map zoom
+  scaleRadius: true, 
+  // if set to false the heatmap uses the global maximum for colorization
+  // if activated: uses the data maximum within the current map boundaries 
+  //   (there will always be a red spot with useLocalExtremas true)
+  useLocalExtrema: true,
+  // which field name in your data represents the latitude - default "lat"
+  latField: 'lat',
+  // which field name in your data represents the longitude - default "lng"
+  lngField: 'lng',
+  // which field name in your data represents the data value - default "value"
+  valueField: 'count'
+};
+
+
+var heatmapLayer = new HeatmapOverlay(cfg);
+
+var map = new L.Map('map', {
+  center: new L.LatLng(25.6586, -80.3568),
+  zoom: 4,
+  layers: [baseLayer, heatmapLayer]
+});
+
+heatmapLayer.setData(testData);
+
+    </script>
+
+
+  </body>
+</html>

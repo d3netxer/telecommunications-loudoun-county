@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Northern Virginia CellIDs</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
+
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <link rel="stylesheet" href="http://jqueryui.com/resources/demos/style.css">
+
+
+    <!--<link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css">-->
+
+    <style>
+      html, body {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #dashboard {
+        height: 33%;
+        padding: 25px;
+        margin: 0;
+        border-top: 2px solid #333;
+      }
+      #dash {
+        margin: 25px 0;
+        width: 400px;
+      }
+      button {
+        margin-right: 10px;
+        font-family: "Proxima Nova W01", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: transparent;
+        font-size: 17px;
+      }
+      p {
+        font-size: 17px;
+        margin-bottom: 10px;
+      }
+      .info {
+          padding: 6px 8px;
+          font: 14px/16px Arial, Helvetica, sans-serif;
+          background: white;
+          background: rgba(255,255,255,0.8);
+          box-shadow: 0 0 15px rgba(0,0,0,0.2);
+          border-radius: 5px;
+        }
+      .info h4 {
+          margin: 0 0 5px;
+          color: #d73f3f;
+        }
+    </style>
+
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+
+  </head>
+  <body>
+
+
+    <div id="map"></div>
+
+    <script type="infowindow/html" id="infowindow_template_tower">
+      <div class="cartodb-popup v2">
+        <a href="#close" class="cartodb-popup-close-button close">x</a>
+         <div class="cartodb-popup-content-wrapper">
+           <div class="cartodb-popup-content">
+             <!-- content.data contains the field info -->
+             <h4>cell: </h4>
+             <p>{{content.data.cell}}</p>
+             <h4>lat: </h4>
+             <p>{{content.data.lat}}</p>
+             <h4>lon: </h4>
+             <p>{{content.data.lon}}</p>
+             <h4>averagesig: </h4>
+             <p>{{content.data.averagesig}}</p>
+             <h4>radio: </h4>
+             <p>{{content.data.radio}}</p>
+           </div>
+         </div>
+         <div class="cartodb-popup-tip-container"></div>
+      </div>
+    </script>
+
+    <script type="infowindow/html" id="infowindow_template_measurement">
+      <div class="cartodb-popup v2">
+        <a href="#close" class="cartodb-popup-close-button close">x</a>
+         <div class="cartodb-popup-content-wrapper">
+           <div class="cartodb-popup-content">
+             <!-- content.data contains the field info -->
+             <h4>measured: </h4>
+             <p>{{content.data.measured}}</p>
+             <h4>net: </h4>
+             <p>{{content.data.net}}</p>
+             <h4>radio: </h4>
+             <p>{{content.data.radio}}</p>
+             <h4>signal: </h4>
+             <p>{{content.data.signal}}</p>
+             <h4>cell: </h4>
+             <p>{{content.data.cell}}</p>
+           </div>
+         </div>
+         <div class="cartodb-popup-tip-container"></div>
+      </div>
+    </script>
+
+    <!--
+    <div id="dashboard">
+        <h3 class="Title Title--xs">CartoDB.js from the ground up, Lesson 2</h3>
+    </div>
+    -->
+
+    <!-- include cartodb.js library -->
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+
+    <script src="leaflet-heatmap.js"></script>
+
+    <!-- Place your code in the script tags below -->
+
+    <script>
+        
+    window.onload = function() {
+
+    //var vizjson = 'https://masonacademy.cartodb.com/api/v2/viz/074f7d10-b2e1-11e5-bb7d-0ea31932ec1d/viz.json';
+
+
+    // Choose center and zoom level
+    var options = {
+        center: [39, -77.5], // Washington DC
+        zoom: 11
+    }
+
+// Instantiate map on specified DOM element
+    var map_object = new L.Map('map', options);
+
+
+// Put layer data into a JS object
+    var layerSource = {
+            user_name: 'masonacademy',
+            type: 'cartodb',
+            sublayers: [{
+                sql: "SELECT * FROM loudoun_county_towers_20160103", // African countries
+                cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #3E7BB6;marker-allow-overlap: true;}',
+                interactivity: "cell,lat,lon,averagesig,radio",
+            },
+            {
+                sql: "SELECT * FROM measurements_total", // Natural and artificial lakes
+                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #FF6600;marker-allow-overlap: true;}',
+                interactivity: "measured,net,radio,signal,cell",
+            }]
+    }
+
+    // For storing the sublayers
+    var sublayers = [];
+
+    // Add a basemap to the map object just created
+    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map_object);
+
+
+
+    // Add CartoDB data layers
+    cartodb.createLayer(map_object,layerSource)
+        .addTo(map_object)
+        .done(function(layer) {
+          for (var i = 0; i < layer.getSubLayerCount(); i++) {
+                 sublayers[i] = layer.getSubLayer(i);
+                 //alert("Congrats, you added sublayer #" + i + "!");
+             }
+             layer.getSubLayer(0).setInteraction(true);
+             cdb.vis.Vis.addInfowindow(map_object, layer.getSubLayer(0), ['cell,lat,lon,averagesig,radio'], {
+                   infowindowTemplate: $('#infowindow_template_tower').text(),
+                   templateType: 'mustache',
+                   triggerEvent: 'featureClick',
+                   cursorInteraction: true  
+             });
+             layer.getSubLayer(1).setInteraction(true);
+             cdb.vis.Vis.addInfowindow(map_object, layer.getSubLayer(1), ['measured,net,radio,signal,cell'], {
+                   infowindowTemplate: $('#infowindow_template_measurement').text(),
+                   templateType: 'mustache',
+                   triggerEvent: 'featureClick',
+                   cursorInteraction: true  
+             });
+  })
+  .error(function(err) {
+    // report error
+    console.log("An error occurred: " + err);
+  });
+
+    //taken from: http://leafletjs.com/examples/choropleth-example.html
+    //info box that contains title
+    var info = L.control();
+
+    info.onAdd = function (map) {
+      this._div = L.DomUtil.create('div', 'info');
+      this._div.innerHTML = '<div id="buttons"><button id="sublayer0" class="Btn Btn--l Btn--blue"><span>Cell Towers</span></button><button id="sublayer1" class="Btn Btn--l Btn--blue"><span>Measurements</span></button></div>';
+      return this._div;
+    };
+
+    info.addTo(map_object);
+
+
+  var sublayer0Shown = true;
+    $("#sublayer0").on('click', function() {
+        if (sublayer0Shown) {
+            sublayers[0].hide();
+        } else {
+            sublayers[0].show();
+        }
+        sublayer0Shown = !sublayer0Shown; 
+    });
+
+    var sublayer1Shown = true;
+    $("#sublayer1").on('click', function() {
+        if (sublayer1Shown) {
+            sublayers[1].hide();
+        } else {
+            sublayers[1].show();
+        }
+        sublayer1Shown = !sublayer1Shown; 
+    });
+
+    var sql = cartodb.SQL({ user: 'masonacademy', format: 'geojson'});
+    var cartoDBUserName = "masonacademy";
+    var sqlQuery = "SELECT * FROM loudoun_county_towers_20160103 LIMIT 100";
+
+/*
+    sql.execute("SELECT cartodb_id, the_geom FROM loudoun_county_towers_20160103").done(function(data) {
+      data = data.features.map(function(r) {
+        console.log(r);
+    });
+      });
+*/
+
+//var towersHeatmap = L.geoJson().addTo(map_object);
+
+        //http://duspviz.mit.edu/web-map-workshop/databases-leaflet-cartodb/
+        // Get CartoDB selection as GeoJSON and Add to Map
+        $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+ sqlQuery , function(data) {
+            towersHeatmap = L.geoJson(data,{
+                    onEachFeature: function (feature, layer) {
+                        layer.bindPopup('' + feature.properties.cell + '');
+                        layer.cartodb_id=feature.properties.cartodb_id;
+                    }
+            }).addTo(map_object);
+        });
+
+
+
+var cfg = {
+  // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+  // if scaleRadius is false it will be the constant radius used in pixels
+  "radius": 2,
+  "maxOpacity": .8, 
+  // scales the radius based on map zoom
+  "scaleRadius": true, 
+  // if set to false the heatmap uses the global maximum for colorization
+  // if activated: uses the data maximum within the current map boundaries 
+  //   (there will always be a red spot with useLocalExtremas true)
+  "useLocalExtrema": true,
+  // which field name in your data represents the latitude - default "lat"
+  latField: 'lat',
+  // which field name in your data represents the longitude - default "lng"
+  lngField: 'lng',
+  // which field name in your data represents the data value - default "value"
+  valueField: 'count'
+};
+
+
+var heatmapLayer = new HeatmapOverlay(cfg);
+
+//heatmapLayer.setData(towersHeatmap);
+
+//end of window.onload function
+}
+
+    </script>
+
+
+  </body>
+</html>
