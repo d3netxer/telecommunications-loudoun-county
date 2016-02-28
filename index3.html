@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
     <link rel="stylesheet" href="http://jqueryui.com/resources/demos/style.css">
 
-
     <!--<link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css">-->
 
     <style>
@@ -147,12 +146,12 @@
             user_name: 'masonacademy',
             type: 'cartodb',
             sublayers: [{
-                sql: "SELECT * FROM loudoun_county_towers_20160103", // African countries
+                sql: "SELECT * FROM loudoun_county_towers_20160103", 
                 cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #3E7BB6;marker-allow-overlap: true;}',
                 interactivity: "cell,lat,lon,averagesig,radio",
             },
             {
-                sql: "SELECT * FROM measurements_total", // Natural and artificial lakes
+                sql: "SELECT * FROM measurements_total", 
                 cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #FF6600;marker-allow-overlap: true;}',
                 interactivity: "measured,net,radio,signal,cell",
             }]
@@ -165,7 +164,6 @@
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map_object);
-
 
 
     // Add CartoDB data layers
@@ -196,8 +194,8 @@
     console.log("An error occurred: " + err);
   });
 
+    //info box that contains title & buttons that turn layers on and off
     //taken from: http://leafletjs.com/examples/choropleth-example.html
-    //info box that contains title
     var info = L.control();
 
     info.onAdd = function (map) {
@@ -208,8 +206,7 @@
 
     info.addTo(map_object);
 
-
-  var sublayer0Shown = true;
+    var sublayer0Shown = true;
     $("#sublayer0").on('click', function() {
         if (sublayer0Shown) {
             sublayers[0].hide();
@@ -229,76 +226,77 @@
         sublayer1Shown = !sublayer1Shown; 
     });
 
-    var sql = cartodb.SQL({ user: 'masonacademy', format: 'geojson'});
 
+    var sql = cartodb.SQL({ user: 'masonacademy', format: 'geojson'});
     var cartoDBUserName = "masonacademy";
     var sqlQuery = "SELECT * FROM loudoun_county_towers_20160103 LIMIT 100";
 
-/*
-    sql.execute("SELECT cartodb_id, the_geom FROM loudoun_county_towers_20160103").done(function(data) {
-      data = data.features.map(function(r) {
-        console.log(r);
-    });
-      });
-*/
-
-var towersHeatmap = L.geoJson().addTo(map_object);
-
-var jsonResponse = {"max":"","data":""};
-
-        //http://duspviz.mit.edu/web-map-workshop/databases-leaflet-cartodb/
-        // Get CartoDB selection as GeoJSON and Add to Map
-        $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+ sqlQuery , function(data) {
-            towersHeatmap.addData(data,{
-                    onEachFeature: function (feature, layer) {
-                        layer.bindPopup('' + feature.properties.cell + '');
-                        layer.cartodb_id=feature.properties.cartodb_id;
-                    }
-            });
-            jsonResponse = data;
-            //console.log(jsonResponse);
+    /*
+        sql.execute("SELECT cartodb_id, the_geom FROM loudoun_county_towers_20160103").done(function(data) {
+          data = data.features.map(function(r) {
+            console.log(r);
         });
+          });
+    */
 
-//console.log("jsonResponse is: ");
-console.log(jsonResponse);
+    var towersHeatmap = L.geoJson().addTo(map_object);
+    var jsonResponse = {"max":"","data":""};
 
-var cfg = {
-  // radius should be small ONLY if scaleRadius is true (or small radius is intended)
-  // if scaleRadius is false it will be the constant radius used in pixels
-  radius: .18,
-  maxOpacity: .8, 
-  // scales the radius based on map zoom
-  scaleRadius: true, 
-  // if set to false the heatmap uses the global maximum for colorization
-  // if activated: uses the data maximum within the current map boundaries 
-  //   (there will always be a red spot with useLocalExtremas true)
-  useLocalExtrema: true,
-  // which field name in your data represents the latitude - default "lat"
-  latField: 'lat',
-  // which field name in your data represents the longitude - default "lng"
-  lngField: 'lng',
-  // which field name in your data represents the data value - default "value"
-  valueField: 'count'
-};
+            //http://duspviz.mit.edu/web-map-workshop/databases-leaflet-cartodb/
+            // Get CartoDB selection as GeoJSON and Add to Map
+            $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+ sqlQuery , function(data) {
+                towersHeatmap.addData(data,{
+                        onEachFeature: function (feature, layer) {
+                            layer.bindPopup('' + feature.properties.cell + '');
+                            layer.cartodb_id=feature.properties.cartodb_id;
+                        }
+                });
+                jsonResponse = data;
+                //console.log(jsonResponse);
+            });
 
-var testData = {
-  max: 8,
-  data: [{lat: 39.01, lng:-77.41, count: 3},{lat: 39.2, lng:-77.419, count: 2}]
-};
+    //console.log("jsonResponse is: ");
+    console.log(jsonResponse);
 
-var testData2 = {
-  max: 8,
-  data: [{lat: 39.01, lng:77.41, count: 3},{lat: 39.2, lng:77.419, count: 2}]
-};
 
-var heatmapLayer = new HeatmapOverlay(cfg);
 
-heatmapLayer.setData(testData);
+    var cfg = {
+      // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+      // if scaleRadius is false it will be the constant radius used in pixels
+      radius: .18,
+      maxOpacity: .8, 
+      // scales the radius based on map zoom
+      scaleRadius: true, 
+      // if set to false the heatmap uses the global maximum for colorization
+      // if activated: uses the data maximum within the current map boundaries 
+      //   (there will always be a red spot with useLocalExtremas true)
+      useLocalExtrema: true,
+      // which field name in your data represents the latitude - default "lat"
+      latField: 'lat',
+      // which field name in your data represents the longitude - default "lng"
+      lngField: 'lng',
+      // which field name in your data represents the data value - default "value"
+      valueField: 'count'
+    };
 
-heatmapLayer.addTo(map_object);
+    var testData = {
+      max: 8,
+      data: [{lat: 39.01, lng:-77.41, count: 3},{lat: 39.2, lng:-77.419, count: 2}]
+    };
 
-//end of window.onload function
-}
+    var testData2 = {
+      max: 8,
+      data: [{lat: 39.01, lng:77.41, count: 3},{lat: 39.2, lng:77.419, count: 2}]
+    };
+
+    var heatmapLayer = new HeatmapOverlay(cfg);
+
+    heatmapLayer.setData(testData);
+
+    heatmapLayer.addTo(map_object);
+
+    //end of window.onload function
+    }
 
     </script>
 

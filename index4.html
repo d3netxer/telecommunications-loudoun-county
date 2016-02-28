@@ -57,21 +57,6 @@
           margin: 0 0 5px;
           color: #d73f3f;
         }
-      .legend {
-      text-align: left;
-      line-height: 18px;
-      color: #555;
-      }
-      .legend i {
-        width: 18px;
-        height: 18px;
-        float: left;
-        margin-right: 8px;
-        opacity: 0.7;
-      }
-      .leaflet-left {
-        margin-bottom: 35px;
-      }
     </style>
 
     <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
@@ -168,12 +153,12 @@
             type: 'cartodb',
             sublayers: [{
                 sql: "SELECT * FROM loudoun_county_towers_20160103", 
-                cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.8;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-width: 10;marker-fill: #FFFFB2;marker-allow-overlap: true;}#loudoun_county_towers_20160103 [ averagesig <= -52] {marker-fill: #B10026;}#loudoun_county_towers_20160103 [ averagesig <= -67] {marker-fill: #E31A1C;}#loudoun_county_towers_20160103 [ averagesig <= -78] {marker-fill: #FC4E2A;}#loudoun_county_towers_20160103 [ averagesig <= -90] {marker-fill: #FD8D3C;}#loudoun_county_towers_20160103 [ averagesig <= -101] {marker-fill: #FEB24C;}#loudoun_county_towers_20160103 [ averagesig <= -113] {marker-fill: #FED976;}#loudoun_county_towers_20160103 [ averagesig <= -124] {marker-fill: #FFFFB2;}',
+                cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #3E7BB6;marker-allow-overlap: true;}',
                 interactivity: "cell,lat,lon,averagesig,radio",
             },
             {
                 sql: "SELECT * FROM measurements_total", 
-                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #229A00;marker-allow-overlap: true;}',
+                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #FF6600;marker-allow-overlap: true;}',
                 interactivity: "measured,net,radio,signal,cell",
             }]
     }
@@ -227,46 +212,6 @@
     };
 
     info.addTo(map);
-
-    // get color depending on population density value
-    function getColor(d) {
-      return d > -64 ? '#800026' :
-             d > -76  ? '#E31A1C' :
-             d > -88  ? '#FC4E2A' :
-             d > -100   ? '#FD8D3C' :
-             d > -112   ? '#FEB24C' :
-             d > -124   ? '#FED976' :
-                        '#FFEDA0';
-    }
-
-    var legend = L.control({position: 'bottomleft'});
-
-    legend.onAdd = function (map) {
-
-      var div = L.DomUtil.create('div', 'info legend'),
-        grades = [-124, -112, -100, -88, -76, -64, -52],
-        labels = [],
-        from, to;
-
-      labels.push('Cell Tower Strength');
-
-      for (var i = 0; i < grades.length; i++) {
-        from = grades[i];
-        to = grades[i + 1];
-
-        labels.push(
-          '<i style="background:' + getColor(from + 1) + '"></i> ' +
-          from + (to ? ' to ' + to + ' ' : '+'));
-      }
-
-      labels.push('Cell Tower Measurements');
-      labels.push('<i style="background:' + '#229A00' + '"></i> ');
-
-      div.innerHTML = labels.join('<br>');
-      return div;
-    };
-
-    legend.addTo(map);
 
     var sublayer0Shown = true;
     $("#sublayer0").on('click', function() {
