@@ -188,6 +188,30 @@
 
     L.mapbox.tileLayer('mapbox.streets').addTo(map)
 
+    // create the layer and add to the map, then will be filled with data
+    //var cellMeasurementsLayer = L.geoJson().addTo(map);
+
+    var towerIconLayer = L.geoJson().addTo(map);
+
+    var cellMeasurementsLayer = L.geoJson(false, {
+    onEachFeature: onEachFeature
+}).addTo(map);
+
+    //http://stackoverflow.com/questions/25436368/leaflet-looking-for-method-of-adding-oneachfeature-to-existing-geojson-layer
+    function onEachFeature(feature, layer) {
+    // does this feature have a property named popupContent?
+        console.log(feature.properties.cell);
+        //layer.bindPopup('id: '+ feature.properties.cell);
+}
+
+var towerIcon = L.icon({
+    iconUrl: 'tower-icon.png',
+
+    iconSize:     [64, 64], // size of the icon
+    iconAnchor:   [32, 32], // point of the icon which will correspond to marker's location
+    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+});
+
     // Add CartoDB data layers
     cartodb.createLayer(map,layerSource)
         .addTo(map)
@@ -210,11 +234,30 @@
                    triggerEvent: 'featureClick',
                    cursorInteraction: true  
              });
+             var towersLayer = sublayers[0];
+             //http://gis.stackexchange.com/questions/129450/sql-query-as-part-of-featureclick-in-cartodb-js
+             towersLayer.on('featureClick', function(e, latlng, pos, data, layer) {
+                console.log("mouse clicked polygon with data: " + data.cell);
+                //each time a tower is selected, it clears the cell measurements from the previous selection
+                cellMeasurementsLayer.clearLayers();
+                map.removeLayer(towerIconLayer);
+                console.log(latlng);
+                towerIconLayer = L.marker(latlng, {icon: towerIcon}).addTo(map)
+                sql.execute("SELECT * FROM measurements_total WHERE cell ilike '" + data.cell + "'")
+                .done(function (geojson) {
+                  //http://blog.cartodb.com/the-versatility-of-retreiving-and-rendering-geospatial/
+                  cellMeasurementsLayer.addData(geojson);
+                });
+
+
+              });
   })
   .error(function(err) {
     // report error
     console.log("An error occurred: " + err);
   });
+
+  
 
     //info box that contains title & buttons that turn layers on and off
     //taken from: http://leafletjs.com/examples/choropleth-example.html
@@ -227,6 +270,7 @@
     };
 
     info.addTo(map);
+
 
     // get color depending on population density value
     function getColor(d) {
