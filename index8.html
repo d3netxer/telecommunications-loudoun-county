@@ -277,14 +277,7 @@
                 map.removeLayer(towerIconLayer);
                 console.log(latlng);
                 towerIconLayer = L.marker(latlng, {icon: towerIcon}).addTo(map)
-                console.log('tower select start date:');
-                console.log(globalStartDate);
-                console.log('tower select end date:');
-                console.log(globalEndDate);
-                //former query
-                //sql.execute("SELECT * FROM measurements_total WHERE cell ilike '" + data.cell + "'")
-                //This new query also takes the date range into effect!
-                sql.execute("SELECT * FROM measurements_total WHERE (cell ilike '" + data.cell + "') AND creationdate Between '" + globalStartDate + "' AND '" + globalEndDate + "'")
+                sql.execute("SELECT * FROM measurements_total WHERE cell ilike '" + data.cell + "'")
                 .done(function (geojson) {
                   //http://blog.cartodb.com/the-versatility-of-retreiving-and-rendering-geospatial/
                   cellMeasurementsLayer.addData(geojson);
@@ -542,17 +535,12 @@
       }
     );
 
-    var startDate;
-    var endDate;
-
-    var globalStartDate = dateStart;
-    var globalEndDate = dateEnd;
+    var startDate = 1;
+    var endDate = 2;
 
 
     function updateQueryStart(startDate,startOrEnd,endDate) {
       //layer.getSubLayer(0).set({
-        globalStartDate = startDate;
-        globalEndDate = endDate;
         console.log("Start!startDate");
         console.log(startDate);
         console.log("endDate");
@@ -571,8 +559,6 @@
 
     function updateQueryEnd(endDate,startOrEnd,startDate) {
       //layer.getSubLayer(0).set({
-        globalStartDate = startDate;
-        globalEndDate = endDate;
         console.log("End!startDate");
         console.log(startDate);
         console.log("endDate");

@@ -20,7 +20,7 @@
 
     <style>
       html, body {
-        height: 97.5%;
+        height: 97%;
         padding: 0;
         margin: 0;
       }
@@ -142,17 +142,121 @@
              <p>{{content.data.signal}}</p>
              <h4>cell: </h4>
              <p>{{content.data.cell}}</p>
+             <h4>measured: </h4>
+             <p>{{content.data.measured}}</p>
            </div>
          </div>
          <div class="cartodb-popup-tip-container"></div>
       </div>
     </script>
 
-    <!-- taking out date for measurements for now, it is not fetching it from the CartoDB 
-    for some reason, and I can't event copy the column to a new one in CartoDB without it displaying a quota exceeded error
-    <h4>date: </h4>
-             <p>{{content.data.date_created_date}}</p>
-    -->
+
+<script type="text/javascript">
+
+/*
+The one function makes the click only fire once
+http://stackoverflow.com/questions/34476696/jquery-append-div-only-once-on-click
+*/
+
+$('#daterange').one('click', function () {
+     var insertHTML = "<li style='float:right;' class='last'><a href='#'><span>End: <input type='text' id='datepicker_recurring_end'></span></a></li><li style='float:right;' class='last'><a href='#'><span>Start: <input type='text' id='datepicker_recurring_start'></span></a></li>"
+     $(this).before(insertHTML);
+  }
+);
+
+/*
+http://stackoverflow.com/questions/10433154/putting-datepicker-on-dynamically-created-elements-jquery-jqueryui
+*/
+
+$('body').on('mouseup',"#daterange", function(){
+      //alert("I'm clicked");
+     $("#datepicker_recurring_end").datepicker();
+     $("#datepicker_recurring_end").datepicker("setDate", "+0");
+     $("#datepicker_recurring_start").datepicker();
+     //The earliest date in the dataset is on Oct 6, 2008
+     $("#datepicker_recurring_start").datepicker("setDate", new Date(2008,10,06));
+     setTimeout(function() {
+        $("#datepicker_recurring_end").datepicker();
+        $("#datepicker_recurring_end").datepicker("setDate", "+0");
+        $("#datepicker_recurring_start").datepicker();
+        $("#datepicker_recurring_start").datepicker("setDate", new Date(2008,09,06));
+     },100)
+  }
+);
+
+var startDate = 1;
+var endDate = 2;
+
+function updateQuery(startDate,endDate) {
+  sublayers[0].set({
+    sql: "SELECT * FROM loudoun_county_towers_20160103 LIMIT 100", 
+    cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.8;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-width: 10;marker-fill: #FFFFB2;marker-allow-overlap: true;}#loudoun_county_towers_20160103 [ averagesig <= -52] {marker-fill: #B10026;}#loudoun_county_towers_20160103 [ averagesig <= -67] {marker-fill: #E31A1C;}#loudoun_county_towers_20160103 [ averagesig <= -78] {marker-fill: #FC4E2A;}#loudoun_county_towers_20160103 [ averagesig <= -90] {marker-fill: #FD8D3C;}#loudoun_county_towers_20160103 [ averagesig <= -101] {marker-fill: #FEB24C;}#loudoun_county_towers_20160103 [ averagesig <= -113] {marker-fill: #FED976;}#loudoun_county_towers_20160103 [ averagesig <= -124] {marker-fill: #FFFFB2;}',
+    interactivity: "cell,lat,lon,averagesig,radio,test1,area,gid_pk",
+  });
+  sublayers[1].set({
+    sql: "SELECT * FROM measurements_total LIMIT 100", 
+    cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #229A00;marker-allow-overlap: true;}',
+    interactivity: "net,radio,signal,cell,measured",
+  });
+}
+
+function newDateQuery(date,startOrEnd) {
+  console.log(date);
+  console.log('alertme function called');
+  if (startOrEnd == 'start') {
+    console.log('start date changed');
+    updateQuery(startDate,endDate);
+  }
+  if (startOrEnd == 'end') {
+    console.log('end date changed');
+    updateQuery(startDate,endDate);
+  }
+  alert('date');
+}
+
+//https://daveismyname.com/dynamic-form-with-jquery-ui-datepicker-bp
+//you are finding when the datepicker get clicked, then destroying the datepicker and creating a new one
+$('body').on('click', "#datepicker_recurring_start", function() {
+    //$(this).datepicker('destroy').datepicker({changeMonth: true,changeYear: true,dateFormat: "yy-mm-dd",yearRange: "1900:+10",showOn:'focus'}).focus();
+    //console.log('date picked');
+    $(this).datepicker('destroy').datepicker({
+       dateFormat: 'yy-mm-dd',
+          onSelect: function (date) {
+          //defined your own method here
+          console.log('start date picked2 ');
+          startOrEnd = 'start'
+          newDateQuery(date,startOrEnd);
+          }
+      });
+});
+
+$('body').on('click', "#datepicker_recurring_end", function() {
+    //$(this).datepicker('destroy').datepicker({changeMonth: true,changeYear: true,dateFormat: "yy-mm-dd",yearRange: "1900:+10",showOn:'focus'}).focus();
+    //console.log('date picked');
+    $(this).datepicker('destroy').datepicker({
+       dateFormat: 'yy-mm-dd',
+          onSelect: function (date) {
+          //defined your own method here
+          console.log('end date picked2 ');
+          startOrEnd = 'end'
+          newDateQuery(date,startOrEnd);
+          }
+      });
+});
+
+$('body').on('focus',"#datepicker_recurring_end", function(){
+    $(this).datepicker();
+    //alert('date');
+    //$("#datepicker_recurring_end").datepicker("setDate", "+0");
+});
+
+$('body').on('focus',"#datepicker_recurring_start", function(){
+    $(this).datepicker();
+    //$("#datepicker_recurring_start").datepicker("setDate", new Date(2014,10,30));
+});
+
+
+</script>
 
   <body>
 
@@ -194,7 +298,7 @@
             {
                 sql: "SELECT * FROM measurements_total", 
                 cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #229A00;marker-allow-overlap: true;}',
-                interactivity: "net,radio,signal,cell,creationdate,area",
+                interactivity: "net,radio,signal,cell,measured",
             }]
     }
 
@@ -232,8 +336,6 @@
         popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
     });
 
-    var towersLayer;
-
     // Add CartoDB data layers
     cartodb.createLayer(map,layerSource)
         .addTo(map)
@@ -250,41 +352,23 @@
                    cursorInteraction: true  
              });
              layer.getSubLayer(1).setInteraction(true);
-             cdb.vis.Vis.addInfowindow(map, layer.getSubLayer(1), ['net,radio,signal,cell,creationdate,area'], {
+             cdb.vis.Vis.addInfowindow(map, layer.getSubLayer(1), ['net,radio,signal,cell,measured'], {
                    infowindowTemplate: $('#infowindow_template_measurement').text(),
                    templateType: 'mustache',
                    triggerEvent: 'featureClick',
                    cursorInteraction: true  
              });
              var towersLayer = sublayers[0];
-             var measurementsLayer = sublayers[1];
-
-             //debug line
-             /*
-             measurementsLayer.on('featureClick', function(e, latlng, pos, data, layer) {
-                console.log("mouse clicked measurement with data: " + data);
-                alert(JSON.stringify(data))
-              });
-              */
-
              //http://gis.stackexchange.com/questions/129450/sql-query-as-part-of-featureclick-in-cartodb-js
              towersLayer.on('featureClick', function(e, latlng, pos, data, layer) {
                 console.log("mouse clicked tower with data: " + data);
-                //alert(JSON.stringify(data))
-
+                alert(JSON.stringify(data))
                 //each time a tower is selected, it clears the cell measurements from the previous selection
                 cellMeasurementsLayer.clearLayers();
                 map.removeLayer(towerIconLayer);
                 console.log(latlng);
                 towerIconLayer = L.marker(latlng, {icon: towerIcon}).addTo(map)
-                console.log('tower select start date:');
-                console.log(globalStartDate);
-                console.log('tower select end date:');
-                console.log(globalEndDate);
-                //former query
-                //sql.execute("SELECT * FROM measurements_total WHERE cell ilike '" + data.cell + "'")
-                //This new query also takes the date range into effect!
-                sql.execute("SELECT * FROM measurements_total WHERE (cell ilike '" + data.cell + "') AND creationdate Between '" + globalStartDate + "' AND '" + globalEndDate + "'")
+                sql.execute("SELECT * FROM measurements_total WHERE cell ilike '" + data.cell + "'")
                 .done(function (geojson) {
                   //http://blog.cartodb.com/the-versatility-of-retreiving-and-rendering-geospatial/
                   cellMeasurementsLayer.addData(geojson);
@@ -385,7 +469,7 @@
     $("#cell-tower-heatmap").on('click', function() {
         if (map.hasLayer(heat)) {
             map.removeLayer(heat);
-            //this.className = '';
+            this.className = '';
         } else {
             map.addLayer(heat);
             this.className = 'active';
@@ -433,7 +517,6 @@
             heat.addLatLng(l.getLatLng());
         });
     });
-
 
 /*old way
             //http://duspviz.mit.edu/web-map-workshop/databases-leaflet-cartodb/
@@ -489,182 +572,10 @@
 
     heatmapLayer.addTo(map);
 */
-
-
-
-    /*
-    The one function makes the click only fire once
-    http://stackoverflow.com/questions/34476696/jquery-append-div-only-once-on-click
-    */
-
-    $('#daterange').one('click', function () {
-         var insertHTML = "<li style='float:right;' class='last'><a href='#'><span>End: <input type='text' id='datepicker_recurring_end'></span></a></li><li style='float:right;' class='last'><a href='#'><span>Start: <input type='text' id='datepicker_recurring_start'></span></a></li>"
-         $(this).before(insertHTML);
-      }
-    );
-
-    /*
-    http://stackoverflow.com/questions/10433154/putting-datepicker-on-dynamically-created-elements-jquery-jqueryui
-    */
-
-    var dateObjStart = new Date(2008,10,06);
-
-    var month = dateObjStart.getMonth() + 1; //months from 1-12
-    var day = dateObjStart.getDate();
-    var year = dateObjStart.getFullYear();
-
-    var dateStart = month + '/' + day + "/" + year;
-
-
-
-    var dateObj = new Date();
-
-    //http://stackoverflow.com/questions/2013255/how-to-get-year-month-day-from-a-date-object
-    var month = dateObj.getMonth() + 1; //months from 1-12
-    var day = dateObj.getDate();
-    var year = dateObj.getFullYear();
-
-    var dateEnd = month + '/' + day + "/" + year;
-
-    $('body').on('mouseup',"#daterange", function(){
-          //alert("I'm clicked");
-         $("#datepicker_recurring_end").datepicker();
-         $("#datepicker_recurring_end").datepicker("setDate", dateEnd);
-         $("#datepicker_recurring_start").datepicker();
-         //The earliest date in the dataset is on Oct 6, 2008
-         $("#datepicker_recurring_start").datepicker("setDate", dateStart);
-         setTimeout(function() {
-            $("#datepicker_recurring_end").datepicker();
-            $("#datepicker_recurring_end").datepicker("setDate", dateEnd);
-            $("#datepicker_recurring_start").datepicker();
-            $("#datepicker_recurring_start").datepicker("setDate", dateStart);
-         },100)
-      }
-    );
-
-    var startDate;
-    var endDate;
-
-    var globalStartDate = dateStart;
-    var globalEndDate = dateEnd;
-
-
-    function updateQueryStart(startDate,startOrEnd,endDate) {
-      //layer.getSubLayer(0).set({
-        globalStartDate = startDate;
-        globalEndDate = endDate;
-        console.log("Start!startDate");
-        console.log(startDate);
-        console.log("endDate");
-        console.log(endDate);
-        sublayers[0].set({
-        sql: "SELECT * FROM loudoun_county_towers_20160103 WHERE date Between '" + startDate + "' AND '" + endDate + "'", 
-        cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.8;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-width: 10;marker-fill: #FFFFB2;marker-allow-overlap: true;}#loudoun_county_towers_20160103 [ averagesig <= -52] {marker-fill: #B10026;}#loudoun_county_towers_20160103 [ averagesig <= -67] {marker-fill: #E31A1C;}#loudoun_county_towers_20160103 [ averagesig <= -78] {marker-fill: #FC4E2A;}#loudoun_county_towers_20160103 [ averagesig <= -90] {marker-fill: #FD8D3C;}#loudoun_county_towers_20160103 [ averagesig <= -101] {marker-fill: #FEB24C;}#loudoun_county_towers_20160103 [ averagesig <= -113] {marker-fill: #FED976;}#loudoun_county_towers_20160103 [ averagesig <= -124] {marker-fill: #FFFFB2;}',
-        interactivity: "cell,lat,lon,averagesig,radio,test1,area,gid_pk",
-      });
-        sublayers[1].set({
-        sql: "SELECT * FROM measurements_total WHERE creationdate Between '" + startDate + "' AND '" + endDate + "'", 
-                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #229A00;marker-allow-overlap: true;}',
-                interactivity: "net,radio,signal,cell,creationdate",
-      });
-    }
-
-    function updateQueryEnd(endDate,startOrEnd,startDate) {
-      //layer.getSubLayer(0).set({
-        globalStartDate = startDate;
-        globalEndDate = endDate;
-        console.log("End!startDate");
-        console.log(startDate);
-        console.log("endDate");
-        console.log(endDate);
-        sublayers[0].set({
-        sql: "SELECT * FROM loudoun_county_towers_20160103 WHERE date Between '" + startDate + "' AND '" + endDate + "'", 
-        cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.8;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-width: 10;marker-fill: #FFFFB2;marker-allow-overlap: true;}#loudoun_county_towers_20160103 [ averagesig <= -52] {marker-fill: #B10026;}#loudoun_county_towers_20160103 [ averagesig <= -67] {marker-fill: #E31A1C;}#loudoun_county_towers_20160103 [ averagesig <= -78] {marker-fill: #FC4E2A;}#loudoun_county_towers_20160103 [ averagesig <= -90] {marker-fill: #FD8D3C;}#loudoun_county_towers_20160103 [ averagesig <= -101] {marker-fill: #FEB24C;}#loudoun_county_towers_20160103 [ averagesig <= -113] {marker-fill: #FED976;}#loudoun_county_towers_20160103 [ averagesig <= -124] {marker-fill: #FFFFB2;}',
-        interactivity: "cell,lat,lon,averagesig,radio,test1,area,gid_pk",
-      });
-        sublayers[1].set({
-        sql: "SELECT * FROM measurements_total WHERE creationdate Between '" + startDate + "' AND '" + endDate + "'", 
-                cartocss: '#measurements_total{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #229A00;marker-allow-overlap: true;}',
-                interactivity: "net,radio,signal,cell,creationdate",
-      });
-    }
-
-
-    function newDateQuery(date,startOrEnd,otherDate) {
-      console.log(date);
-      console.log('alertme function called');
-      if (startOrEnd == 'start') {
-        console.log('start date changed');
-        updateQueryStart(date,startOrEnd,otherDate);
-      }
-      if (startOrEnd == 'end') {
-        console.log('end date changed');
-        updateQueryEnd(date,startOrEnd,otherDate);
-      }
-      //alert('date');
-    }
-
-    //makes Datepicker hide when user clicks away!
-    //http://stackoverflow.com/questions/13333571/jquery-ui-datepicker-doesnt-hide-when-click-outside
-    $(document).click(function(e) { 
-      var ele = $(e.toElement); 
-      if (!ele.hasClass("hasDatepicker") && !ele.hasClass("ui-datepicker") && !ele.hasClass("ui-icon") && !$(ele).parent().parents(".ui-datepicker").length)
-         $(".hasDatepicker").datepicker("hide"); 
-    });
-
-    //using focusin works!
-    //http://stackoverflow.com/questions/4987293/weird-jquery-date-picker-action
-
-    //https://daveismyname.com/dynamic-form-with-jquery-ui-datepicker-bp
-    //you are finding when the datepicker get clicked, then destroying the datepicker and creating a new one
-    $('body').one('focusin', "#datepicker_recurring_start", function() {
-        //$(this).datepicker('destroy').datepicker({changeMonth: true,changeYear: true,dateFormat: "yy-mm-dd",yearRange: "1900:+10",showOn:'focus'}).focus();
-        //console.log('date picked');
-        //destroy was the old way, but it keeps on destroying and recreating the datepicker, and skips back to January 1900 if you press forward month
-        $(this).datepicker('destroy').datepicker({
-        //http://stackoverflow.com/questions/4987293/weird-jquery-date-picker-action
-        //$(this).not('.hasDatePicker').datepicker({
-           //dateFormat: 'mm/dd/yyyy',
-              onSelect: function (date) {
-              //defined your own method here
-              //console.log('start date picked2 ');
-              startOrEnd = 'start'
-              dateStart = date;
-              newDateQuery(dateStart,startOrEnd,dateEnd);
-              }
-          });
-    });
-
-    $('body').one('focusin', "#datepicker_recurring_end", function() {
-        //$(this).datepicker('destroy').datepicker({changeMonth: true,changeYear: true,dateFormat: "yy-mm-dd",yearRange: "1900:+10",showOn:'focus'}).focus();
-        //console.log('date picked');
-        //$(this).not('.hasDatePicker').datepicker({
-          $(this).datepicker('destroy').datepicker({
-              onSelect: function (date) {
-              //defined your own method here
-              //console.log('end date picked2 ');
-              startOrEnd = 'end'
-              dateEnd = date;
-              newDateQuery(dateEnd,startOrEnd,dateStart);
-              }
-          });
-    });
-
-    $('body').on('focus',"#datepicker_recurring_end", function(){
-        $(this).datepicker();
-        //alert('date');
-        //$("#datepicker_recurring_end").datepicker("setDate", "+0");
-    });
-
-    $('body').on('focus',"#datepicker_recurring_start", function(){
-        $(this).datepicker();
-        //$("#datepicker_recurring_start").datepicker("setDate", new Date(2014,10,30));
-    });
     //end of window.onload function
     }
 
     </script>
-
 
   <!-- include cartodb.js library -->
     <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>

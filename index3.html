@@ -83,6 +83,8 @@
              <p>{{content.data.averagesig}}</p>
              <h4>radio: </h4>
              <p>{{content.data.radio}}</p>
+             <h4>created: </h4>
+             <p>{{content.data.created}}</p>
            </div>
          </div>
          <div class="cartodb-popup-tip-container"></div>
@@ -148,7 +150,7 @@
             sublayers: [{
                 sql: "SELECT * FROM loudoun_county_towers_20160103", 
                 cartocss: '#loudoun_county_towers_20160103{marker-fill-opacity: 0.9;marker-line-color: #FFF;marker-line-width: 1;marker-line-opacity: 1;marker-placement: point;marker-type: ellipse;marker-width: 10;marker-fill: #3E7BB6;marker-allow-overlap: true;}',
-                interactivity: "cell,lat,lon,averagesig,radio",
+                interactivity: "cell,lat,lon,averagesig,radio,created",
             },
             {
                 sql: "SELECT * FROM measurements_total", 
@@ -175,7 +177,7 @@
                  //alert("Congrats, you added sublayer #" + i + "!");
              }
              layer.getSubLayer(0).setInteraction(true);
-             cdb.vis.Vis.addInfowindow(map_object, layer.getSubLayer(0), ['cell,lat,lon,averagesig,radio'], {
+             cdb.vis.Vis.addInfowindow(map_object, layer.getSubLayer(0), ['cell,lat,lon,averagesig,radio,created'], {
                    infowindowTemplate: $('#infowindow_template_tower').text(),
                    templateType: 'mustache',
                    triggerEvent: 'featureClick',
